@@ -2,6 +2,7 @@ package main
 
 import (
 	"log"
+	"os"
 
 	"github.com/gin-gonic/gin"
 	"github.com/jijahh/cookies4cuties_server_golang/internal/config"
@@ -24,6 +25,9 @@ func main() {
 	)
 	router := gin.Default()
 	routes.SetupRoutes(router, client, cfg.ADMIN_API_KEY, cfg.SUPABASE_STORAGE_BUCKET_ORDERS, cfg.SUPABASE_STORAGE_BUCKET_PRODUCTS, cfg.MAX_UPLOAD_SIZE, emailService)
+	if os.Getenv("VERCEL") != "" {
+		gin.SetMode(gin.ReleaseMode)
+	}
 	log.Println("Server running on port:", cfg.PORT)
 
 	if err := router.Run(":" + cfg.PORT); err != nil {
