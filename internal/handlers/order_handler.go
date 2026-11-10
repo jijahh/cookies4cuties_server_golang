@@ -486,17 +486,31 @@ func (h *OrderHandler) CreateOrder(c *gin.Context) {
 			Subtotal: item.Subtotal,
 		})
 	}
-
-	if err := h.EmailService.SendOrderEmail(services.OrderEmailData{
+	emailData := services.OrderEmailData{
 		RecipientEmail: email,
 		OrderStatus:    "pending",
 		PickupLocation: pickupLocation,
 		PaymentMethod:  strings.ReplaceAll(paymentMethod, "_", " "),
 		Items:          receiptItems,
 		TotalPrice:     validatedTotalPrice,
-	}); err != nil {
-		log.Printf("Failed to send order confirmation email: %v", err)
 	}
+
+	go func(data services.OrderEmailData) {
+		if err := h.EmailService.SendOrderEmail(data); err != nil {
+			log.Printf("Failed to send order confirmation email: %v", err)
+		}
+	}(emailData)
+
+	// if err := h.EmailService.SendOrderEmail(services.OrderEmailData{
+	// 	RecipientEmail: email,
+	// 	OrderStatus:    "pending",
+	// 	PickupLocation: pickupLocation,
+	// 	PaymentMethod:  strings.ReplaceAll(paymentMethod, "_", " "),
+	// 	Items:          receiptItems,
+	// 	TotalPrice:     validatedTotalPrice,
+	// }); err != nil {
+	// 	log.Printf("Failed to send order confirmation email: %v", err)
+	// }
 
 	c.JSON(http.StatusCreated, createdOrders[0])
 }
