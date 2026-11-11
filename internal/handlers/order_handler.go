@@ -28,6 +28,7 @@ type OrderHandler struct {
 	StorageBucket   string
 	MaxUploadSizeMB int64
 	EmailService    *services.EmailService
+	EmailQueue      *services.EmailQueue
 }
 
 func NewOrderHandler(
@@ -35,12 +36,14 @@ func NewOrderHandler(
 	bucket string,
 	maxUploadSizeMB int64,
 	emailService *services.EmailService,
+	emailQueue *services.EmailQueue,
 ) *OrderHandler {
 	return &OrderHandler{
 		Supabase:        client,
 		StorageBucket:   bucket,
 		MaxUploadSizeMB: maxUploadSizeMB,
 		EmailService:    emailService,
+		EmailQueue:      emailQueue,
 	}
 }
 
@@ -495,24 +498,18 @@ func (h *OrderHandler) CreateOrder(c *gin.Context) {
 		TotalPrice:     validatedTotalPrice,
 	}
 
-	go func(data services.OrderEmailData) {
-		if err := h.EmailService.SendOrderEmail(data); err != nil {
-			log.Printf("Failed to send order confirmation email: %v", err)
-		}
-	}(emailData)
+	emailQueued := false
 
-	// if err := h.EmailService.SendOrderEmail(services.OrderEmailData{
-	// 	RecipientEmail: email,
-	// 	OrderStatus:    "pending",
-	// 	PickupLocation: pickupLocation,
-	// 	PaymentMethod:  strings.ReplaceAll(paymentMethod, "_", " "),
-	// 	Items:          receiptItems,
-	// 	TotalPrice:     validatedTotalPrice,
-	// }); err != nil {
-	// 	log.Printf("Failed to send order confirmation email: %v", err)
-	// }
+	if err := h.EmailQueue.QueueOrderEmail(emailData); err != nil {
+		log.Printf("Failed to queue order confirmation email: %v", err)
+	} else {
+		emailQueued = true
+	}
 
-	c.JSON(http.StatusCreated, createdOrders[0])
+	c.JSON(http.StatusCreated, gin.H{
+		"order":        createdOrders[0],
+		"email_queued": emailQueued,
+	})
 }
 
 func (h *OrderHandler) UpdateOrder(c *gin.Context) {

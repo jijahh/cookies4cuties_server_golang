@@ -19,6 +19,10 @@ type Config struct {
 	SUPABASE_STORAGE_BUCKET_ORDERS   string
 	SUPABASE_STORAGE_BUCKET_PRODUCTS string
 	MAX_UPLOAD_SIZE                  int
+	QSTASH_TOKEN                     string
+	QSTASH_CURRENT_SIGNING_KEY       string
+	QSTASH_NEXT_SIGNING_KEY          string
+	EMAIL_WORKER_URL                 string
 }
 
 func LoadConfig() *Config {
@@ -46,5 +50,9 @@ func LoadConfig() *Config {
 		SUPABASE_STORAGE_BUCKET_ORDERS:   bucket_orders,
 		SUPABASE_STORAGE_BUCKET_PRODUCTS: bucket_products,
 		MAX_UPLOAD_SIZE:                  maxUploadSizeMB,
+		QSTASH_TOKEN:                     os.Getenv("QSTASH_TOKEN"),
+		QSTASH_CURRENT_SIGNING_KEY:       os.Getenv("QSTASH_CURRENT_SIGNING_KEY"),
+		QSTASH_NEXT_SIGNING_KEY:          os.Getenv("QSTASH_NEXT_SIGNING_KEY"),
+		EMAIL_WORKER_URL:                 os.Getenv("EMAIL_WORKER_URL"),
 	}
 }
