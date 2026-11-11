@@ -28,8 +28,6 @@ func NewEmailQueue(token, workerURL string) *EmailQueue {
 
 func (q *EmailQueue) QueueOrderEmail(data OrderEmailData) error {
 	if q.Token == "" || q.WorkerURL == "" {
-		fmt.Println(q.Token)
-		fmt.Println(q.WorkerURL)
 		return fmt.Errorf("email queue is not configured")
 	}
 
